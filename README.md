@@ -1,6 +1,6 @@
 # Unistroke Gesture Recognizer
-Project: $1 Single-Stroke Gesture Recognizer
-Programmer: Khoi Ho
+Project: $1 Single-Stroke Gesture Recognizer  
+Programmer: Khoi Ho  
 
 Description: 
 This project aims to implement the single-stroke gesture recognition algorithm created by Washington University (https://depts.washington.edu/acelab/proj/dollar/dollar.pdf).
@@ -21,6 +21,6 @@ How to control:
 + D: Delete a saved template.
 + T: Resample the drawn stroke.
 
-Format of mystrokes.txt:
-The first line is the number of template.
+Format of mystrokes.txt:  
+The first line is the number of template.  
 For each template, the first line is the name of the template, the second line is the number of points n, and the subsequent n lines contain the coordinates of the points.
