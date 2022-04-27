@@ -3,7 +3,8 @@ Project: $1 Single-Stroke Gesture Recognizer
 Programmer: Khoi Ho  
 
 Description: 
-This project aims to implement the single-stroke gesture recognition algorithm created by Washington University (https://depts.washington.edu/acelab/proj/dollar/dollar.pdf).
+This project aims to implement the single-stroke gesture recognition algorithm created by Washington University.  
+Link to the research paper and the pseudocode: https://depts.washington.edu/acelab/proj/dollar/  
 
 Features:
 + Draws single strokes on screen.
