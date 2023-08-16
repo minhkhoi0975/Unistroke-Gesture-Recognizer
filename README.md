@@ -25,3 +25,7 @@ How to control:
 Format of mystrokes.txt:  
 The first line is the number of template strokes.  
 For each template, the first line is the name of the template, the second line is the number of points n, and the subsequent n lines contain the coordinates of the points.
+
+![](Screenshots/screenshot1.png)
+![](Screenshots/screenshot2.png)
+![](Screenshots/screenshot3.png)
