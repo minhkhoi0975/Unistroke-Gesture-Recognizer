@@ -1,6 +1,9 @@
 // $1 Single-Stroke Gesture Recognizer.
 // Programmer: Khoi Ho
 
+// Fix error C2338.
+#define WINDOWS_IGNORE_PACKING_MISMATCH
+
 #include <fstream>
 #include <iostream>
 #include <iomanip>
