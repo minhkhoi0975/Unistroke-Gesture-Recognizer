@@ -18,10 +18,12 @@ mono_crash.*
 
 # Build results
 [Dd]ebug/*.exp
+[Dd]ebug/*.exe
 [Dd]ebug/*.ilk
 [Dd]ebug/*.lib
 [Dd]ebug/*.pdb
 [Rr]elease/*.exp
+[Rr]elease/*.exe
 [Rr]elease/*.ilk
 [Rr]elease/*.lib
 [Rr]elease/*.pdb
