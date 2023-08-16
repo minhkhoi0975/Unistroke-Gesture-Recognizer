@@ -366,41 +366,10 @@ std::vector<Stroke> OpenStrokeFile(const std::string& fileName)
 
 	std::fstream inputFile(fileName, std::ifstream::in);
 
-	if (inputFile)
+	// If the file has not existed, create a new one.
+	if (!inputFile)
 	{
-		// Read the number of strokes.
-		int numStrokes;
-		inputFile >> numStrokes;
-		std::cout << "Number of strokes: " << numStrokes << std::endl;
-
-		strokes.resize(numStrokes);
-
-		for (int i = 0; i < numStrokes; ++i)
-		{
-			// Read the name of the stroke.
-			inputFile.ignore(100, '\n');
-			getline(inputFile, strokes[i].name);
-
-			// Read the number of points.
-			int numPoints;
-			inputFile >> numPoints;
-
-			strokes[i].points.resize(numPoints);
-
-			// Read the points.
-			for (int j = 0; j < numPoints; ++j)
-			{
-				inputFile >> strokes[i].points[j].x >> strokes[i].points[j].y;
-			}
-
-			std::cout << "Read the stroke:\t" << strokes[i].name << "\t(Size = " << strokes[i].points.size() << ")" << std::endl;
-		}
-
-		inputFile.close();
-	}
-	else
-	{
-		std::cerr << "Cannot open " << fileName << ". Creating the file..." << std::endl;
+		std::cerr << "Cannot open the file " << fileName << ". Creating a new one..." << std::endl;
 
 		std::fstream outputFile(fileName, std::ofstream::out);
 		if (outputFile)
@@ -408,7 +377,41 @@ std::vector<Stroke> OpenStrokeFile(const std::string& fileName)
 			outputFile << 0 << std::endl;
 			outputFile.close();
 		}
+
+		inputFile.close();
+
+		return strokes;
 	}
+
+	// Read the number of strokes.
+	int numStrokes;
+	inputFile >> numStrokes;
+	std::cout << "Number of strokes in the file: " << numStrokes << std::endl;
+
+	strokes.resize(numStrokes);
+
+	for (int i = 0; i < numStrokes; ++i)
+	{
+		// Read the name of the stroke.
+		inputFile.ignore(100, '\n');
+		getline(inputFile, strokes[i].name);
+
+		// Read the number of points.
+		int numPoints;
+		inputFile >> numPoints;
+
+		strokes[i].points.resize(numPoints);
+
+		// Read the points.
+		for (int j = 0; j < numPoints; ++j)
+		{
+			inputFile >> strokes[i].points[j].x >> strokes[i].points[j].y;
+		}
+
+		std::cout << "Read the stroke:\t" << strokes[i].name << "\t(Size = " << strokes[i].points.size() << ")" << std::endl;
+	}
+
+	inputFile.close();
 
 	return strokes;
 }
@@ -416,43 +419,41 @@ std::vector<Stroke> OpenStrokeFile(const std::string& fileName)
 bool SaveStrokesToFile(const std::string& fileName, const std::vector<Stroke>& strokes)
 {
 	std::fstream outputFile(fileName, std::ofstream::out | std::ofstream::trunc);
-
-	if (outputFile)
+	if (!outputFile)
 	{
-		// Write the number of strokes.
-		outputFile << strokes.size() << std::endl;
-
-		for (const Stroke& stroke : strokes)
-		{
-			// Write the name.
-			outputFile << stroke.name << std::endl;
-
-			// Write the number of points.
-			outputFile << stroke.points.size() << std::endl;
-
-			// Write the points.
-			for (int i = 0; i < stroke.points.size(); ++i)
-			{
-				outputFile << stroke.points[i].x << "\t" << stroke.points[i].y << std::endl;
-			}
-		}
+		std::cerr << "Error: Cannot open the file " << fileName << "." << std::endl;
 
 		outputFile.close();
-
-		return true;
+		return false;
 	}
 
-	std::cerr << "Error: Cannot open the stroke file." << std::endl;
-	return false;
+	// Write the number of strokes.
+	outputFile << strokes.size() << std::endl;
+
+	for (const Stroke& stroke : strokes)
+	{
+		// Write the name.
+		outputFile << stroke.name << std::endl;
+
+		// Write the number of points.
+		outputFile << stroke.points.size() << std::endl;
+
+		// Write the points.
+		for (int i = 0; i < stroke.points.size(); ++i)
+		{
+			outputFile << stroke.points[i].x << "\t" << stroke.points[i].y << std::endl;
+		}
+	}
+
+	outputFile.close();
+	return true;	
 }
 
 void SwitchToConsoleWindow(const char* programPath)
 {
 	HWND hWnd = ::FindWindow(NULL, programPath);
 	if (hWnd)
-	{
 		::SetForegroundWindow(hWnd);
-	}
 }
 
 void SwitchToMainWindow(SDL_Window* window)
