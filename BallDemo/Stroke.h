@@ -7,21 +7,21 @@
 #include <vector>
 #include "Vector2.h"
 
+// Reference: http://faculty.washington.edu/wobbrock/pubs/uist-07.01.pdf
 class Stroke
 {
 public:
-    // The name of the stroke
+    // The name of the stroke.
     std::string name;
 
-    // The points of the stroke
+    // The points of the stroke.
     std::vector<Vector2> points;
 
-	// Constructors.
 	Stroke();
 	Stroke(const std::string& name);
 	Stroke(const Stroke& other);
 
-	// Assignment operator overloading.
+	// Used for copying values instead of copying the reference.
 	Stroke& operator= (const Stroke& other);
 
 	// Used for checking if the two strokes share the same values instead of the same reference.
@@ -30,31 +30,31 @@ public:
 	// Used for sorting strokes by name.
 	bool operator< (const Stroke& other);
 
-	// Get the centroid of the stroke.
+	// Returns the centroid of the stroke.
 	Vector2 GetCentroid() const;
 
-	// Get the bounding box of the stroke.
+	// Returns the bounding box of the stroke.
 	void GetBoundingBox(Vector2& topLeftCorner, Vector2& bottomRightCorner) const;
 
-	// Find the total length of the lines between the points.
+	// Returns the total length of the stroke.
 	float GetPathLength() const;
 
-	// Resample the stroke.
+	// Resamples the stroke.
 	Stroke Resample(int numPoints = 64) const;
 
-	// Find the indicative angle from the centroid to the first point.
+	// Finds the indicative angle from the centroid to the first point.
 	float GetIndicativeAngle() const;
 
-	// Rotate the stroke by an angle.
+	// Rotates the stroke by an angle around the centroid.
 	Stroke RotateBy(float angle) const;
 
-	// Scale the stroke to a (size x size) bounding box.
+	// Scales the stroke to match the bounding box. The size parameter is the size of each side of the bounding box.
 	Stroke ScaleTo(const int& size = 250) const;
 
-	// Translate a stroke to the origin.
+	// Translates the stroke to the origin.
 	Stroke TranslateTo(const Vector2& origin = Vector2()) const;
 
-	// Get the average distance between respective points of the 2 strokes.
+	// Returns the average distance between respective points of the 2 strokes.
 	float GetPathDistance(const Stroke& other) const;
 
 	// ???
@@ -63,7 +63,7 @@ public:
 	// ??? 
 	float GetDistanceAtBestAngle(const Stroke& other, float angleAlpha, float angleBeta, const float& angleDelta) const;
 
-	// Find the stroke that matches this stroke and calculate the score.
+	// Finds the stroke that matches this stroke and returns the score.
 	void Recognize(std::vector<Stroke>& strokeTemplates, const float& size, Stroke& matchingStroke, float& score) const;
 };
 

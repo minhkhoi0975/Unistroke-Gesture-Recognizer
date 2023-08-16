@@ -27,13 +27,13 @@ bool Stroke::operator<(const Stroke& other)
 
 Vector2 Stroke::GetCentroid() const
 {
-	if (points.size() == 0)
+	const int pointCount = points.size();
+
+	if (pointCount == 0)
 		throw std::exception("Cannot find the centroid: The stroke has no point.");
 
 	float sumX = 0;
 	float sumY = 0;
-	int pointCount = points.size();
-
 	for (int i = 0; i < pointCount; ++i)
 	{
 		sumX += points[i].x;
@@ -45,7 +45,9 @@ Vector2 Stroke::GetCentroid() const
 
 void Stroke::GetBoundingBox(Vector2& topLeftCorner, Vector2& bottomRightCorner) const
 {
-	if (points.size() == 0)
+	const int pointCount = points.size();
+
+	if (pointCount == 0)
 		throw std::exception("Cannot find the bounding box: The stroke has no point.");
 
 	float minX = points[0].x;
@@ -53,25 +55,17 @@ void Stroke::GetBoundingBox(Vector2& topLeftCorner, Vector2& bottomRightCorner) 
 	float maxX = points[0].x;
 	float maxY = points[0].y;
 
-	for (int i = 1; i < points.size(); ++i)
+	for (int i = 1; i < pointCount; ++i)
 	{
 		if (points[i].x < minX)
-		{
 			minX = points[i].x;
-		}
 		else if (points[i].x > maxX)
-		{
 			maxX = points[i].x;
-		}
 
 		if (points[i].y < minY)
-		{
 			minY = points[i].y;
-		}
 		else if (points[i].y > maxY)
-		{
 			maxY = points[i].y;
-		}
 	}
 
 	topLeftCorner.x = minX;
@@ -83,16 +77,14 @@ void Stroke::GetBoundingBox(Vector2& topLeftCorner, Vector2& bottomRightCorner) 
 
 float Stroke::GetPathLength() const
 {
-	if (points.size() <= 1)
+	const int pointCount = points.size();
+
+	if (pointCount <= 1)
 		return 0.0f;
 
 	float length = 0;
-
-	for (int i = 1; i < points.size(); ++i)
-	{
+	for (int i = 1; i < pointCount; ++i)
 		length += Vector2::Distance(points[i - 1], points[i]);
-	}
-
 	return length;
 }
 
@@ -130,16 +122,12 @@ Stroke Stroke::Resample(int numPoints) const
 			D = 0;
 		}
 		else
-		{
 			D += d;
-		}
 	}
 
-	// Fix the bug in which the size of newPoints does not match numPoints.
+	// Fix the bug in which the size of newPoints doesn't match numPoints.
 	if (resampledStroke.points.size() < numPoints)
-	{
 		resampledStroke.points.push_back(points[points.size() - 1]);
-	}
 
 	return resampledStroke;
 }
@@ -213,12 +201,13 @@ Stroke Stroke::TranslateTo(const Vector2& origin) const
 	newStroke.points.reserve(this->points.size());
 
 	Vector2 centroid = GetCentroid();
+	Vector2 displacementToOrigin = origin - centroid;
 
 	for (const Vector2& point : points)
 	{
 		Vector2 newPoint;
-		newPoint.x = point.x + origin.x - centroid.x;
-		newPoint.y = point.y + origin.y - centroid.y;
+		newPoint.x = point.x + displacementToOrigin.x;
+		newPoint.y = point.y + displacementToOrigin.y;
 
 		newStroke.points.push_back(newPoint);
 	}
@@ -228,23 +217,18 @@ Stroke Stroke::TranslateTo(const Vector2& origin) const
 
 float Stroke::GetPathDistance(const Stroke& other) const
 {
-	if (this->points.size() != other.points.size())
-	{
+	const int thisStrokeSize = points.size();
+	const int otherStrokeSize = other.points.size();
+
+	if (thisStrokeSize != otherStrokeSize)
 		throw std::exception("Error: Cannot find the path distance: The two strokes have different sizes.");
-	}
-	else if (points.size() == 0)
-	{
+	else if (thisStrokeSize == 0)
 		throw std::exception("Error: Cannot find the path distance: Both strokes do not have any points.");
-	}
 
 	float distance = 0;
-
-	for (int i = 0; i < this->points.size(); ++i)
-	{
-		distance += Vector2::Distance(this->points[i], other.points[i]);
-	}
-
-	return distance / points.size();
+	for (int i = 0; i < thisStrokeSize; ++i)
+		distance += Vector2::Distance(points[i], other.points[i]);
+	return distance / thisStrokeSize;
 }
 
 float Stroke::GetDistanceAtAngle(const Stroke& other, const float& angle) const

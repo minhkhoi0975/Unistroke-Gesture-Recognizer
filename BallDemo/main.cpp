@@ -17,7 +17,7 @@
 #include "Stroke.h"
 
 // Open the stroke file and read the strokes.
-std::vector<Stroke> OpenStrokeFile(const std::string& fileName);
+void OpenStrokeFile(const std::string& fileName, std::vector<Stroke>& strokes);
 
 // Save the strokes to a file. Return true is the file is successfully saved.
 bool SaveStrokesToFile(const std::string& fileName, const std::vector<Stroke>& strokes);
@@ -49,8 +49,6 @@ int main(int argc, char* argv[])
 	NFont font;
 	font.load(FONT_FILENAME, FONT_SIZE);
 
-	const Uint8* keystates = SDL_GetKeyboardState(nullptr);
-
 	// Coordinates of the mouse.
 	int mouseX = 0, mouseY = 0;
 
@@ -58,7 +56,8 @@ int main(int argc, char* argv[])
 
 	Stroke drawnStroke;
 
-	std::vector<Stroke> strokes = OpenStrokeFile(STROKE_FILENAME);
+	std::vector<Stroke> strokes;
+	OpenStrokeFile(STROKE_FILENAME, strokes);
 
 	SDL_Event event;
 	bool done = false;
@@ -83,9 +82,7 @@ int main(int argc, char* argv[])
 			if (event.type == SDL_MOUSEBUTTONUP)
 			{
 				if (event.button.button == SDL_BUTTON_LEFT)
-				{
 					isDrawing = false;
-				}
 			}
 
 			if (event.type == SDL_KEYDOWN)
@@ -305,7 +302,7 @@ int main(int argc, char* argv[])
 		// Get the current position of the mouse.
 		SDL_GetMouseState(&mouseX, &mouseY);
 
-		// Holding mouse button
+		// Draw onto screen if the user is holding the mouse button.
 		if(isDrawing)
 		{
 			Vector2 mousePosition(mouseX, mouseY);
@@ -325,9 +322,9 @@ int main(int argc, char* argv[])
 		GPU_SetLineThickness(5.0f);
 		for (int i = 1; i < drawnStroke.points.size(); ++i)
 		{
-			Vector2 p1 = drawnStroke.points[i-1];
-			Vector2 p2 = drawnStroke.points[i];
-			GPU_Line(screen, p1.x, p1.y, p2.x, p2.y, GPU_MakeColor(255, 0, 0, 255));
+			Vector2 currentPoint = drawnStroke.points[i-1];
+			Vector2 nextPoint = drawnStroke.points[i];
+			GPU_Line(screen, currentPoint.x, currentPoint.y, nextPoint.x, nextPoint.y, GPU_MakeColor(255, 0, 0, 255));
 		}
 		GPU_SetLineThickness(1.0f);
 
@@ -360,9 +357,9 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-std::vector<Stroke> OpenStrokeFile(const std::string& fileName)
+void OpenStrokeFile(const std::string& fileName, std::vector<Stroke>& strokes)
 {
-	std::vector<Stroke> strokes;
+	strokes.clear();
 
 	std::fstream inputFile(fileName, std::ifstream::in);
 
@@ -380,7 +377,7 @@ std::vector<Stroke> OpenStrokeFile(const std::string& fileName)
 
 		inputFile.close();
 
-		return strokes;
+		return;
 	}
 
 	// Read the number of strokes.
@@ -412,8 +409,6 @@ std::vector<Stroke> OpenStrokeFile(const std::string& fileName)
 	}
 
 	inputFile.close();
-
-	return strokes;
 }
 
 bool SaveStrokesToFile(const std::string& fileName, const std::vector<Stroke>& strokes)
