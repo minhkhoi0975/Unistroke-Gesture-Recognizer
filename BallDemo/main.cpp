@@ -15,121 +15,27 @@
 #include "Random.h"
 #include "Vector2.h"
 #include "Stroke.h"
-using namespace std;
 
 // Open the stroke file and read the strokes.
-vector<Stroke> OpenStrokes(const string& fileName)
-{
-	vector<Stroke> strokes;
-
-	fstream inputFile(fileName, ifstream::in);
-	
-	if (inputFile)
-	{
-		// Read the number of strokes.
-		int numStrokes;
-		inputFile >> numStrokes;
-		cout << "Number of strokes: " << numStrokes << endl;
-
-		strokes.resize(numStrokes);
-
-		for (int i = 0; i < numStrokes; ++i)
-		{
-			// Read the name of the stroke.
-			inputFile.ignore(100, '\n');
-			getline(inputFile, strokes[i].name);
-
-			// Read the number of points.
-			int numPoints;
-			inputFile >> numPoints;
-
-			strokes[i].points.resize(numPoints);
-
-			// Read the points.
-			for (int j = 0; j < numPoints; ++j)
-			{
-				inputFile >> strokes[i].points[j].x >> strokes[i].points[j].y;
-			}
-
-			cout << "Read the stroke:\t" << strokes[i].name << "\t(Size = " << strokes[i].points.size() << ")" << endl;
-		}
-
-		inputFile.close();
-	}
-	else
-	{
-		cerr << "Cannot open " << fileName << ". Creating the file..." << endl;
-
-		fstream outputFile(fileName, ofstream::out);
-		if (outputFile)
-		{
-			outputFile << 0 << endl;
-			outputFile.close();
-		}
-	}
-
-	return strokes;
-}
+std::vector<Stroke> OpenStrokeFile(const std::string& fileName);
 
 // Save the strokes to a file. Return true is the file is successfully saved.
-bool SaveStrokes(const string& fileName, const vector<Stroke>& strokes)
-{
-	fstream outputFile(fileName, ofstream::out | ofstream::trunc);
-
-	if (outputFile)
-	{
-		// Write the number of strokes.
-		outputFile << strokes.size() << endl;
-
-		for (const Stroke& stroke : strokes)
-		{
-			// Write the name.
-			outputFile << stroke.name << endl;
-
-			// Write the number of points.
-			outputFile << stroke.points.size() << endl;
-
-			// Write the points.
-			for (int i = 0; i < stroke.points.size(); ++i)
-			{
-				outputFile << stroke.points[i].x << "\t" << stroke.points[i].y << endl;
-			}
-		}
-
-		outputFile.close();
-
-		return true;
-	}
-
-	cerr << "Error: Cannot open the stroke file." << endl;
-	return false;
-}
+bool SaveStrokesToFile(const std::string& fileName, const std::vector<Stroke>& strokes);
 
 // Switch from main window to console window. Need the path of the executable.
-void SwitchToConsoleWindow(const char* programPath)
-{
-	HWND hWnd = ::FindWindow(NULL, programPath);
-	if (hWnd)
-	{
-		::SetForegroundWindow(hWnd);
-	}
-}
+void SwitchToConsoleWindow(const char* programPath);
 
 // Switch from console window to main window. Need the reference to the SDL_Window.
-void SwitchToMainWindow(SDL_Window* window)
-{
-	static SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window, &wmInfo);
-
-	::SetForegroundWindow(wmInfo.info.win.window);
-}
+void SwitchToMainWindow(SDL_Window* window);
 
 int main(int argc, char* argv[])
 {
+	const char* WINDOW_TITLE = "$1 Single-Stroke Gesture Recognizer";
 	const int SCREEN_WIDTH = 800;
 	const int SCREEN_HEIGHT = 600;
-	const string STROKE_FILENAME = "mystrokes.txt";
+	const char* FONT_FILENAME = "FreeSans.ttf";
+	const int FONT_SIZE = 14;
+	const std::string STROKE_FILENAME = "mystrokes.txt";
 
 	// Initialize SDL_GPU.
 	GPU_Target* screen = GPU_Init(SCREEN_WIDTH, SCREEN_HEIGHT, GPU_DEFAULT_INIT_FLAGS);
@@ -137,11 +43,11 @@ int main(int argc, char* argv[])
 		return 1;
 
 	// Create a window.
-	SDL_SetWindowTitle(SDL_GetWindowFromID(screen->context->windowID), "$1 Single-Stroke Gesture Recognizer");
+	SDL_SetWindowTitle(SDL_GetWindowFromID(screen->context->windowID), WINDOW_TITLE);
 	
 	// Load a font to display text on screen.
 	NFont font;
-	font.load("FreeSans.ttf", 14);
+	font.load(FONT_FILENAME, FONT_SIZE);
 
 	const Uint8* keystates = SDL_GetKeyboardState(nullptr);
 
@@ -152,7 +58,7 @@ int main(int argc, char* argv[])
 
 	Stroke drawnStroke;
 
-	vector<Stroke> strokes = OpenStrokes(STROKE_FILENAME);
+	std::vector<Stroke> strokes = OpenStrokeFile(STROKE_FILENAME);
 
 	SDL_Event event;
 	bool done = false;
@@ -198,9 +104,8 @@ int main(int argc, char* argv[])
 
 						// Cannot save the drawn stroke if it is too short.
 						if (drawnStroke.points.size() < 10)
-						{
-							cout << "Cannot save the stroke: The stroke is too short." << endl;
-						}
+							std::cout << "Cannot save the stroke: The stroke is too short." << std::endl;
+
 						else
 						{
 							system("cls");
@@ -208,17 +113,16 @@ int main(int argc, char* argv[])
 							// Ask the user the enter the name of the stroke.
 							while (true)
 							{
-								cout << "Enter the name of the stroke: ";
+								std::cout << "Enter the name of the stroke: ";
 
-								if (getline(cin, drawnStroke.name))
-								{
+								if (getline(std::cin, drawnStroke.name))
 									break;
-								}
+
 								else
 								{
-									cout << "Invalid name. ";
-									cin.clear();
-									cin.ignore(100, '\n');
+									std::cout << "Invalid name. ";
+									std::cin.clear();
+									std::cin.ignore(100, '\n');
 								}
 							}
 
@@ -229,12 +133,10 @@ int main(int argc, char* argv[])
 							sort(strokes.begin(), strokes.end());
 
 							// Save the strokes.
-							bool canSave = SaveStrokes("mystrokes.txt", strokes);
+							bool canSave = SaveStrokesToFile("mystrokes.txt", strokes);
 
 							if (canSave)
-							{
-								cout << "The stroke \"" << drawnStroke.name << "\" has been successfully saved to " << STROKE_FILENAME << endl;
-							}
+								std::cout << "The stroke \"" << drawnStroke.name << "\" has been successfully saved to " << STROKE_FILENAME << std::endl;
 						}
 
 						SwitchToMainWindow(SDL_GetWindowFromID(screen->context->windowID));
@@ -251,15 +153,12 @@ int main(int argc, char* argv[])
 					{
 						// Cannot recognize the drawn stroke if it is too short.
 						if (drawnStroke.points.size() < 10)
-						{
-							cout << "The stroke is too short." << endl;
-						}
+							std::cout << "The stroke is too short." << std::endl;
+
 						else
 						{
 							if (strokes.size() == 0)
-							{
-								cout << "There is no saved stroke." << endl;
-							}
+								std::cout << "There is no saved stroke." << std::endl;
 
 							else
 							{
@@ -271,7 +170,7 @@ int main(int argc, char* argv[])
 								drawnStrokeCopy = drawnStrokeCopy.TranslateTo();
 
 								// Process the saved strokes.
-								vector<Stroke> strokesCopy(strokes);
+								std::vector<Stroke> strokesCopy(strokes);
 								for (Stroke& stroke : strokesCopy)
 								{
 									stroke = stroke.Resample();
@@ -286,9 +185,9 @@ int main(int argc, char* argv[])
 								drawnStrokeCopy.Recognize(strokesCopy, 250, matchingStroke, score);
 
 								// Display the matching stroke and the score.
-								stringstream matchingStrokeSS;
-								matchingStrokeSS << fixed << setprecision(2);
-								matchingStrokeSS << matchingStroke.name << " (Score = " << score << ")" << endl;
+								std::stringstream matchingStrokeSS;
+								matchingStrokeSS << std::fixed << std::setprecision(2);
+								matchingStrokeSS << matchingStroke.name << " (Score = " << score << ")" << std::endl;
 								SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Matching Stroke", matchingStrokeSS.str().c_str(), SDL_GetWindowFromID(screen->context->windowID));
 							}
 						}
@@ -302,28 +201,26 @@ int main(int argc, char* argv[])
 						system("cls");
 
 						// Display the saved strokes.
-						cout << "List of saved strokes: " << endl;
+						std::cout << "List of saved strokes: " << std::endl;
 						for (const Stroke& stroke : strokes)
-						{
-							cout << "\t" << stroke.name << endl;
-						}
-						cout << endl;
+							std::cout << "\t" << stroke.name << std::endl;
+						std::cout << std::endl;
 
 						// Ask the user to enter which stroke they want to view.
-						string strokeToView;
+						std::string strokeToView;
 						while (true)
 						{
-							cout << "Enter the name of the stroke to view: ";
+							std::cout << "Enter the name of the stroke to view: ";
 
-							if (getline(cin, strokeToView))
+							if (getline(std::cin, strokeToView))
 							{
 								break;
 							}
 							else
 							{
-								cout << "Invalid name. ";
-								cin.clear();
-								cin.ignore(100, '\n');
+								std::cout << "Invalid name. ";
+								std::cin.clear();
+								std::cin.ignore(100, '\n');
 							}
 						}
 
@@ -340,13 +237,9 @@ int main(int argc, char* argv[])
 						}
 
 						if (strokeFound)
-						{
-							cout << "Viewing the stroke \"" << drawnStroke.name << "\"." << endl;
-						}
+							std::cout << "Viewing the stroke \"" << drawnStroke.name << "\"." << std::endl;
 						else
-						{
-							cout << "Cannot view the stroke \"" << strokeToView << "\": The stroke does not exist." << endl;
-						}
+							std::cout << "Cannot view the stroke \"" << strokeToView << "\": The stroke does not exist." << std::endl;
 
 						SwitchToMainWindow(SDL_GetWindowFromID(screen->context->windowID));
 					}
@@ -359,28 +252,26 @@ int main(int argc, char* argv[])
 						system("cls");
 
 						// Display the saved strokes.
-						cout << "List of saved strokes: " << endl;
+						std::cout << "List of saved strokes: " << std::endl;
 						for (const Stroke& stroke : strokes)
-						{
-							cout << "\t" << stroke.name << endl;
-						}
-						cout << endl;
+							std::cout << "\t" << stroke.name << std::endl;
+						std::cout << std::endl;
 
 						// Ask the user to enter which stroke they want to delete.
-						string strokeToDelete;
+						std::string strokeToDelete;
 						while (true)
 						{
-							cout << "Enter the name of the stroke to delete: ";
+							std::cout << "Enter the name of the stroke to delete: ";
 
-							if (getline(cin, strokeToDelete))
+							if (getline(std::cin, strokeToDelete))
 							{
 								break;
 							}
 							else
 							{
-								cout << "Invalid name. " << endl;
-								cin.clear();
-								cin.ignore(100, '\n');
+								std::cout << "Invalid name. " << std::endl;
+								std::cin.clear();
+								std::cin.ignore(100, '\n');
 							}
 						}
 
@@ -389,16 +280,12 @@ int main(int argc, char* argv[])
 						while (i < strokes.size())
 						{
 							if (strokes[i].name == strokeToDelete)
-							{
 								strokes.erase(strokes.begin() + i);
-							}
 							else
-							{
 								++i;
-							}
 						}
 
-						cout << "\"" << strokeToDelete << "\" has been removed from " << STROKE_FILENAME << endl;
+						std::cout << "\"" << strokeToDelete << "\" has been removed from " << STROKE_FILENAME << std::endl;
 
 						SwitchToMainWindow(SDL_GetWindowFromID(screen->context->windowID));
 					}
@@ -425,20 +312,16 @@ int main(int argc, char* argv[])
 
 			// Don't at the latest cursor position to the array if it is not moving.
 			if (drawnStroke.points.size() == 0 || mousePosition != drawnStroke.points[drawnStroke.points.size() - 1])
-			{
 				drawnStroke.points.push_back(mousePosition);
-			}
 		}
 
 		GPU_ClearRGB(screen, 255, 255, 255);
 
-		// Draw the starting point.
+		// Draw the circle marking the first point.
 		if (drawnStroke.points.size() > 0)
-		{
 			GPU_Circle(screen, drawnStroke.points[0].x, drawnStroke.points[0].y, 5.0f, GPU_MakeColor(0, 0, 255, 255));
-		}
 
-		// Draw lines
+		// Draw lines.
 		GPU_SetLineThickness(5.0f);
 		for (int i = 1; i < drawnStroke.points.size(); ++i)
 		{
@@ -448,7 +331,7 @@ int main(int argc, char* argv[])
 		}
 		GPU_SetLineThickness(1.0f);
 
-		// Draw the ending point.
+		// Draw the circle marking the last point.
 		if (drawnStroke.points.size() > 0)
 		{
 			const int lastPoint = drawnStroke.points.size() - 1;
@@ -475,4 +358,108 @@ int main(int argc, char* argv[])
 	GPU_Quit();
 
 	return 0;
+}
+
+std::vector<Stroke> OpenStrokeFile(const std::string& fileName)
+{
+	std::vector<Stroke> strokes;
+
+	std::fstream inputFile(fileName, std::ifstream::in);
+
+	if (inputFile)
+	{
+		// Read the number of strokes.
+		int numStrokes;
+		inputFile >> numStrokes;
+		std::cout << "Number of strokes: " << numStrokes << std::endl;
+
+		strokes.resize(numStrokes);
+
+		for (int i = 0; i < numStrokes; ++i)
+		{
+			// Read the name of the stroke.
+			inputFile.ignore(100, '\n');
+			getline(inputFile, strokes[i].name);
+
+			// Read the number of points.
+			int numPoints;
+			inputFile >> numPoints;
+
+			strokes[i].points.resize(numPoints);
+
+			// Read the points.
+			for (int j = 0; j < numPoints; ++j)
+			{
+				inputFile >> strokes[i].points[j].x >> strokes[i].points[j].y;
+			}
+
+			std::cout << "Read the stroke:\t" << strokes[i].name << "\t(Size = " << strokes[i].points.size() << ")" << std::endl;
+		}
+
+		inputFile.close();
+	}
+	else
+	{
+		std::cerr << "Cannot open " << fileName << ". Creating the file..." << std::endl;
+
+		std::fstream outputFile(fileName, std::ofstream::out);
+		if (outputFile)
+		{
+			outputFile << 0 << std::endl;
+			outputFile.close();
+		}
+	}
+
+	return strokes;
+}
+
+bool SaveStrokesToFile(const std::string& fileName, const std::vector<Stroke>& strokes)
+{
+	std::fstream outputFile(fileName, std::ofstream::out | std::ofstream::trunc);
+
+	if (outputFile)
+	{
+		// Write the number of strokes.
+		outputFile << strokes.size() << std::endl;
+
+		for (const Stroke& stroke : strokes)
+		{
+			// Write the name.
+			outputFile << stroke.name << std::endl;
+
+			// Write the number of points.
+			outputFile << stroke.points.size() << std::endl;
+
+			// Write the points.
+			for (int i = 0; i < stroke.points.size(); ++i)
+			{
+				outputFile << stroke.points[i].x << "\t" << stroke.points[i].y << std::endl;
+			}
+		}
+
+		outputFile.close();
+
+		return true;
+	}
+
+	std::cerr << "Error: Cannot open the stroke file." << std::endl;
+	return false;
+}
+
+void SwitchToConsoleWindow(const char* programPath)
+{
+	HWND hWnd = ::FindWindow(NULL, programPath);
+	if (hWnd)
+	{
+		::SetForegroundWindow(hWnd);
+	}
+}
+
+void SwitchToMainWindow(SDL_Window* window)
+{
+	static SDL_SysWMinfo wmInfo;
+	SDL_VERSION(&wmInfo.version);
+	SDL_GetWindowWMInfo(window, &wmInfo);
+
+	::SetForegroundWindow(wmInfo.info.win.window);
 }

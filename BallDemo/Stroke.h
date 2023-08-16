@@ -24,10 +24,10 @@ public:
 	// Assignment operator overloading.
 	Stroke& operator= (const Stroke& other);
 
-	// Equal operator overloading.
+	// Used for checking if the two strokes share the same values instead of the same reference.
 	bool operator== (const Stroke& other);
 
-	// Less than operator overloading.
+	// Used for sorting strokes by name.
 	bool operator< (const Stroke& other);
 
 	// Get the centroid of the stroke.
