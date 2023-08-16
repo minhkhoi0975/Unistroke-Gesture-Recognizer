@@ -1,5 +1,6 @@
 #include "Stroke.h"
 #include <limits>
+#include <cmath>
 
 Stroke::Stroke():name(std::string()) {}
 
@@ -134,8 +135,8 @@ Stroke Stroke::Resample(int numPoints) const
 
 float Stroke::GetIndicativeAngle() const
 {
-	if (points.size() == 0)
-		throw std::exception("Cannot find the indicative angle: The stroke has no point.");
+	if (points.size() < 2)
+		throw std::exception("Cannot find the indicative angle: The stroke must have at least 2 points.");
 
 	Vector2 centroid = GetCentroid();
 	return atan2(centroid.y - points[0].y, centroid.x - points[0].x);
@@ -154,8 +155,8 @@ Stroke Stroke::RotateBy(float angle) const
 	for (const Vector2& point : points)
 	{
 		Vector2 newPoint;
-		newPoint.x = (point.x - centroid.x) * cos(angle) - (point.y - centroid.y) * sin(angle) + centroid.x;
-		newPoint.y = (point.x - centroid.x) * sin(angle) + (point.y - centroid.y) * cos(angle) + centroid.y;
+		newPoint.x = (point.x - centroid.x) * std::cos(angle) - (point.y - centroid.y) * std::sin(angle) + centroid.x;
+		newPoint.y = (point.x - centroid.x) * std::sin(angle) + (point.y - centroid.y) * std::cos(angle) + centroid.y;
 
 		newStroke.points.push_back(newPoint);
 	}
@@ -192,22 +193,24 @@ Stroke Stroke::ScaleTo(const int& size) const
 	return newStroke;
 }
 
-Stroke Stroke::TranslateTo(const Vector2& origin) const
+Stroke Stroke::TranslateTo(const Vector2& target) const
 {
-	if (points.size() == 0)
+	const int pointCount = points.size();
+
+	if (pointCount == 0)
 		throw std::exception("Cannot translate the stroke: The stroke has no point.");
 
 	Stroke newStroke(name);
-	newStroke.points.reserve(this->points.size());
+	newStroke.points.reserve(pointCount);
 
 	Vector2 centroid = GetCentroid();
-	Vector2 displacementToOrigin = origin - centroid;
+	Vector2 displacementToTarget = target - centroid;
 
 	for (const Vector2& point : points)
 	{
 		Vector2 newPoint;
-		newPoint.x = point.x + displacementToOrigin.x;
-		newPoint.y = point.y + displacementToOrigin.y;
+		newPoint.x = point.x + displacementToTarget.x;
+		newPoint.y = point.y + displacementToTarget.y;
 
 		newStroke.points.push_back(newPoint);
 	}
@@ -240,7 +243,7 @@ float Stroke::GetDistanceAtAngle(const Stroke& other, const float& angle) const
 
 float Stroke::GetDistanceAtBestAngle(const Stroke& other, float angleAlpha, float angleBeta, const float& angleDelta) const
 {
-	static const float phi = 0.5f * (-1.0f + sqrt(5.0f));
+	static const float phi = 0.5f * (-1.0f + std::sqrt(5.0f));
 
 	float x1 = phi * angleAlpha + (1.0f - phi) * angleBeta;
 	float f1 = GetDistanceAtAngle(other, x1);
@@ -248,7 +251,7 @@ float Stroke::GetDistanceAtBestAngle(const Stroke& other, float angleAlpha, floa
 	float x2 = (1.0f - phi) * angleAlpha + phi * angleBeta;
 	float f2 = GetDistanceAtAngle(other, x2);
 
-	while (abs(angleBeta - angleAlpha) > angleDelta)
+	while (std::abs(angleBeta - angleAlpha) > angleDelta)
 	{
 		if (f1 < f2)
 		{
@@ -273,7 +276,7 @@ float Stroke::GetDistanceAtBestAngle(const Stroke& other, float angleAlpha, floa
 
 void Stroke::Recognize(std::vector<Stroke>& strokeTemplates, const float& size, Stroke& matchingStroke, float& score) const
 {
-	static const float PI = 2.0f * acosf(0.0f);
+	static const float PI = 2.0f * std::acosf(0.0f);
 	static const float ANGLE_ALPHA = -0.25f * PI; //  45 degrees.
 	static const float ANGLE_BETA = 0.25f * PI;   // -45 degrees.
 	static const float ANGLE_DELTA = PI / 90.0f;  //   2 degrees.
@@ -288,8 +291,8 @@ void Stroke::Recognize(std::vector<Stroke>& strokeTemplates, const float& size, 
 		{
 			bestDistance = distance;
 			matchingStroke = strokeTemplate;
-		}
-
-		score = 1.0f - bestDistance / (0.5f * sqrt(size * size + size * size));
+		}		
 	}
+
+	score = 1.0f - bestDistance / (0.5f * std::sqrt(size * size + size * size));
 }

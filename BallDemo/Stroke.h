@@ -39,10 +39,10 @@ public:
 	// Returns the total length of the stroke.
 	float GetPathLength() const;
 
-	// Resamples the stroke.
+	// Resamples the points into the specified number of evenly spaced points.
 	Stroke Resample(int numPoints = 64) const;
 
-	// Finds the indicative angle from the centroid to the first point.
+	// Finds the indicative angle from the first point of the stroke to the centroid.
 	float GetIndicativeAngle() const;
 
 	// Rotates the stroke by an angle around the centroid.
@@ -57,7 +57,7 @@ public:
 	// Returns the average distance between respective points of the 2 strokes.
 	float GetPathDistance(const Stroke& other) const;
 
-	// ???
+	// Returns the distance between this stroke, rotated by an angle, and the other stroke.
 	float GetDistanceAtAngle(const Stroke& other, const float& angle) const;
 
 	// ??? 
